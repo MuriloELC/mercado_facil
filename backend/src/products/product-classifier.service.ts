@@ -41,10 +41,10 @@ export class ProductClassifierService {
       /\/$/,
       '',
     );
-    const configuredTimeout = Number(process.env.RAG_TIMEOUT_MS ?? 30000);
+    const configuredTimeout = Number(process.env.RAG_TIMEOUT_MS ?? 120000);
     const timeoutMs = Number.isFinite(configuredTimeout)
       ? Math.max(configuredTimeout, 1000)
-      : 30000;
+      : 120000;
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
