@@ -26,9 +26,12 @@
     "check": "npm run build && npm run typecheck:mobile && npm test"
   },
   "overrides": {
-    "expo": "54.0.35",
+    "expo": "54.0.36",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-native": "0.81.5"
+  },
+  "dependencies": {
+    "expo-router": "~6.0.24"
   }
 }

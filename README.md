@@ -74,13 +74,15 @@ Sem Ollama ou sem os modelos, `GET /health` e `POST /classify` do RAG retornam `
 
 ## Mobile
 
-Para emulador/web local, mantenha:
+Para execução web local, mantenha:
 
 ```env
 EXPO_PUBLIC_API_URL=http://localhost:3001
 ```
 
-Em aparelho físico, use o IP LAN do computador, mantendo a porta `3001`:
+No Expo Go, quando essa URL usa `localhost`, o aplicativo troca automaticamente o host pelo IP LAN anunciado pelo Metro. O celular e o computador precisam estar na mesma rede.
+
+Se a detecção não estiver disponível, ou em um build instalado, informe explicitamente o IP LAN do computador, mantendo a porta `3001`:
 
 ```env
 EXPO_PUBLIC_API_URL=http://192.168.0.10:3001

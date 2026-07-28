@@ -1,3 +1,6 @@
+import Constants from 'expo-constants';
+import { Platform } from 'react-native';
+
 import {
   AuthResponse,
   NfceReviewItem,
@@ -6,16 +9,51 @@ import {
   UserShoppingListStatus,
 } from './types';
 
-const apiBase = process.env.EXPO_PUBLIC_API_URL?.replace(/\/$/, '');
+const configuredApiBase = process.env.EXPO_PUBLIC_API_URL?.replace(/\/$/, '');
+let resolvedApiBase: string | undefined;
 
 function getApiBase(): string {
-  if (!apiBase) {
-    throw new Error(
-      'Configure EXPO_PUBLIC_API_URL no mobile/.env. Em celular fisico, use o IP da maquina do backend, nao localhost.',
-    );
+  if (resolvedApiBase) {
+    return resolvedApiBase;
   }
 
-  return apiBase;
+  if (!configuredApiBase) {
+    throw new Error('Configure EXPO_PUBLIC_API_URL no mobile/.env.');
+  }
+
+  const configuredUrl = new URL(configuredApiBase);
+  const isLocalhost =
+    configuredUrl.hostname === 'localhost' ||
+    configuredUrl.hostname === '127.0.0.1';
+
+  if (Platform.OS !== 'web' && isLocalhost) {
+    const expoDevHost = getExpoDevHost();
+
+    if (!expoDevHost) {
+      throw new Error(
+        'No celular, configure EXPO_PUBLIC_API_URL com o IP LAN da maquina do backend.',
+      );
+    }
+
+    configuredUrl.hostname = expoDevHost;
+  }
+
+  resolvedApiBase = configuredUrl.toString().replace(/\/$/, '');
+  return resolvedApiBase;
+}
+
+function getExpoDevHost(): string | undefined {
+  const hostUri = Constants.expoConfig?.hostUri;
+  if (!hostUri) return undefined;
+
+  try {
+    const hostname = new URL(`http://${hostUri}`).hostname;
+    return /^(?:\d{1,3}\.){3}\d{1,3}$/.test(hostname)
+      ? hostname
+      : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 async function requestJson<T>(
@@ -29,10 +67,18 @@ async function requestJson<T>(
     headers.set('Authorization', `Bearer ${token}`);
   }
 
-  const response = await fetch(`${getApiBase()}${path}`, {
-    ...init,
-    headers,
-  });
+  const baseUrl = getApiBase();
+  let response: Response;
+  try {
+    response = await fetch(`${baseUrl}${path}`, {
+      ...init,
+      headers,
+    });
+  } catch {
+    throw new Error(
+      `Nao foi possivel conectar a API em ${baseUrl}. Verifique o backend e a rede.`,
+    );
+  }
 
   const contentType = response.headers.get('content-type');
   const payload = contentType?.includes('application/json')
