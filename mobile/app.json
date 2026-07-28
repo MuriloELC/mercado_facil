@@ -1,0 +1,32 @@
+{
+  "expo": {
+    "name": "Mercado Facil",
+    "slug": "mercado-facil-mobile",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "mercadofacil",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "Use a camera para ler o QR Code da NFC-e."
+      }
+    },
+    "android": {
+      "permissions": [
+        "CAMERA"
+      ]
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Use a camera para ler o QR Code da NFC-e."
+        }
+      ],
+      "expo-secure-store"
+    ]
+  }
+}

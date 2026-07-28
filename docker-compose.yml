@@ -1,0 +1,63 @@
+services:
+  db:
+    image: pgvector/pgvector:0.8.2-pg16
+    container_name: nota_db
+    environment:
+      POSTGRES_DB: lista_compras
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - '5501:5432'
+    volumes:
+      - nota_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d lista_compras']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+
+  db-test:
+    image: pgvector/pgvector:0.8.2-pg16
+    container_name: nota_db_test
+    profiles: ['test']
+    environment:
+      POSTGRES_DB: lista_compras_test
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - '5502:5432'
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d lista_compras_test']
+      interval: 3s
+      timeout: 3s
+      retries: 15
+
+  rag:
+    build:
+      context: ./canonical-rag
+    container_name: nota_rag
+    profiles: ['rag']
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@db:5432/lista_compras
+      OLLAMA_URL: http://host.docker.internal:11434
+      OLLAMA_EMBED_MODEL: embeddinggemma
+      OLLAMA_CHAT_MODEL: qwen2.5:7b
+      RAG_TOP_K: 5
+    ports:
+      - '8001:8001'
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'python', '-c', "import urllib.request; urllib.request.urlopen('http://localhost:8001/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  nota_db_data:
